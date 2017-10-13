@@ -14,9 +14,9 @@ if __name__ == "__main__":
     train_X, train_Y, test_X, test_Y = mnistSet[0], mnistSet[1], mnistSet[2], mnistSet[3]
 
     # 数据集总样本数
-    m = np.shape(train_X)[0]
+    m, n = np.shape(train_X)
     # 分批训练数据时每次拟合的样本数
-    num = 10000
+    num = 30000
 
     print "**********测试先验为高斯分布的朴素贝叶斯**********"
     t = time()
@@ -24,14 +24,14 @@ if __name__ == "__main__":
     # 整体拟合
     model.fit(train_X, train_Y)
     # 分批拟合
-    # for i in range(int(np.ceil(m/num))):
+    # for i in range(int(np.ceil(1.0*m/num))):
     #     minEnd = min((i+1)*num, m)
     #     model.partial_fit(train_X[i*num:minEnd], train_Y[i*num:minEnd], classes=train_Y)
     idx = range(m)
     np.random.shuffle(idx)
     # 分批预测训练集
     all_train_Y_hat = []
-    for i in range(int(np.ceil(m/num))):
+    for i in range(int(np.ceil(1.0*m/num))):
         minEnd = min((i+1)*num, m)
         sub_idx = idx[i*num:minEnd]
         train_Y_hat = model.predict(train_X[sub_idx])
