@@ -4,10 +4,12 @@
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 from time import time
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import mnist
 import roc
 
@@ -88,8 +90,13 @@ if __name__ == "__main__":
     # 拟合训练数据集
     model.fit(train_X, train_Y.values.ravel())
     print "袋外分数:", model.oob_score_
+    print "系数:", model.coef_
+    print "截距:", model.intercept_
+    print "训练集R2:", r2_score(train_Y, model.predict(train_X))
     # 预测测试集
     test_Y_pred = model.predict(test_X)
+    print "测试集得分:", model.score(test_X, test_Y)
     print "测试集MSE:", mean_squared_error(test_Y, test_Y_pred)
     print "测试集RMSE:", np.sqrt(mean_squared_error(test_Y, test_Y_pred))
+    print "测试集R2:", r2_score(test_Y, test_Y_pred)
     print "总耗时:", time() - t, "秒"
