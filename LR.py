@@ -9,6 +9,8 @@ import mnist
 import roc
 
 if __name__ == "__main__":
+    np.set_printoptions(linewidth=200, edgeitems=5)
+
     # 读取Mnist数据集
     mnistSet = mnist.loadLecunMnistSet()
     train_X, train_Y, test_X, test_Y = mnistSet[0], mnistSet[1], mnistSet[2], mnistSet[3]
@@ -18,6 +20,9 @@ if __name__ == "__main__":
     model = LogisticRegression(C=0.000001, solver='lbfgs', multi_class='multinomial')
     model.fit(train_X, train_Y)
     train_Y_hat = model.predict(train_X)
+    # 预测输入样本属于各个类别的概率
+    train_Y_proba = model.predict_proba(train_X)
+    print train_Y_proba
     print '训练集精确度: ', metrics.accuracy_score(train_Y, train_Y_hat)
     test_Y_hat = model.predict(test_X)
     print '测试集精确度: ', metrics.accuracy_score(test_Y, test_Y_hat)
@@ -27,7 +32,7 @@ if __name__ == "__main__":
     # # 分批训练数据时每次拟合的样本数
     # num = 10000
     # idx = range(m)
-    # model = LogisticRegressionCV(Cs=np.logspace(-7, -3, 5), cv=5, solver='lbfgs', multi_class='multinomial')
+    # model = LogisticRegressionCV(Cs=np.logspace(-9, -0, 10), cv=5, solver='lbfgs', multi_class='multinomial')
     # for i in range(int(np.ceil(1.0*m/num))):
     #     minEnd = min((i+1)*num, m)
     #     sub_idx = idx[i*num:minEnd]
