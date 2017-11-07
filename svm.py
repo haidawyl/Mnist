@@ -2,9 +2,8 @@
 # -*- coding:utf-8 -*-
 
 from sklearn.svm import SVC, NuSVC, LinearSVC, SVR, NuSVR, LinearSVR
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split, cross_val_predict
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.metrics import accuracy_score, mean_squared_error
 from time import time
 import numpy as np
@@ -55,6 +54,32 @@ if __name__ == "__main__":
 
     print "\n**********测试SVC类**********"
     t = time()
+    # 分批处理时每次的样本数
+    num = 10000
+    # 分批拟合训练数据集
+    paramsCount = {}
+    model = GridSearchCV(SVC(cache_size=1000),
+                         param_grid={"C": np.logspace(-3, 3, 7), "gamma": np.logspace(-10, 0, 11)}, cv=5)
+    for i in range(int(np.ceil(1.0 * m / num))):
+        minEnd = min((i + 1) * num, m)
+        sub_idx = idx[i * num:minEnd]
+        model.fit(train_X[sub_idx], train_Y[sub_idx])
+        best_params_ = model.best_params_
+        print("最好的参数是:%s, 此时的得分是:%0.2f" % (best_params_, model.best_score_))
+        key = ""
+        for param in best_params_.keys():
+            key = key + param + ":" + str(best_params_.get(param)) + ";"
+        key = key[:len(key) - 1]
+        paramsCount[key] = paramsCount.get(key, 0) + 1
+    sortedParamsCount = sorted(paramsCount.iteritems(), key=operator.itemgetter(1), reverse=True)
+    bestParams = {}
+    for params in sortedParamsCount:
+        for item in params[0].split(";"):
+            paramVal = item.split(":")
+            if not bestParams.has_key(paramVal[0]):
+                bestParams[paramVal[0]] = paramVal[1]
+    print "最好的参数是:", bestParams
+
     # model = GridSearchCV(SVC(cache_size=1000),
     #                      param_grid={"C": np.logspace(-3, 3, 7), "gamma": np.logspace(-10, 0, 11)}, cv=5)
     # model.fit(train_X, train_Y)
@@ -76,10 +101,10 @@ if __name__ == "__main__":
 
     print "\n**********测试NuSVC类**********"
     t = time()
-    # model = GridSearchCV(NuSVC(cache_size=1000), param_grid={"nu": np.linspace(0.1, 1, 10),
-    #                                                          "gamma": np.logspace(-3, 3, 7)}, cv=5)
-    # model.fit(train_X, train_Y)
-    # print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
+    model = GridSearchCV(NuSVC(cache_size=1000), param_grid={"nu": np.linspace(0.1, 1, 10),
+                                                             "gamma": np.logspace(-3, 3, 7)}, cv=5)
+    model.fit(train_X, train_Y)
+    print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
 
     model = NuSVC(gamma=0.0000001, cache_size=1000)
     # 拟合训练数据集
@@ -112,9 +137,10 @@ if __name__ == "__main__":
     np.random.shuffle(idx)
 
     print "\n**********测试LinearSVR类**********"
-    # model = GridSearchCV(LinearSVR(), param_grid={"C": np.logspace(-3, 3, 7)}, cv=5)
-    # model.fit(train_X, train_Y.values.ravel())
-    # print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
+    t = time()
+    model = GridSearchCV(LinearSVR(), param_grid={"C": np.logspace(-3, 3, 7)}, cv=5)
+    model.fit(train_X, train_Y.values.ravel())
+    print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
 
     model = LinearSVR(C=10.0)
     # 拟合训练集
@@ -126,12 +152,14 @@ if __name__ == "__main__":
     test_Y_pred = model.predict(test_X)
     print "测试集MSE:", mean_squared_error(test_Y, test_Y_pred)
     print "测试集RMSE:", np.sqrt(mean_squared_error(test_Y, test_Y_pred))
+    print "总耗时:", time() - t, "秒"
 
     print "\n**********测试SVR类**********"
-    # model = GridSearchCV(SVR(cache_size=1000), param_grid={"C": np.logspace(-3, 3, 7), "gamma": np.logspace(-3, 3, 7),
-    #                                                        "epsilon": np.logspace(-3, 3, 7)}, cv=5)
-    # model.fit(train_X, train_Y.values.ravel())
-    # print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
+    t = time()
+    model = GridSearchCV(SVR(cache_size=1000), param_grid={"C": np.logspace(-3, 3, 7), "gamma": np.logspace(-3, 3, 7),
+                                                           "epsilon": np.logspace(-3, 3, 7)}, cv=5)
+    model.fit(train_X, train_Y.values.ravel())
+    print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
 
     model = SVR(C=100.0, gamma=0.1, cache_size=500)
     # 拟合训练集
@@ -143,12 +171,14 @@ if __name__ == "__main__":
     test_Y_pred = model.predict(test_X)
     print "测试集MSE:", mean_squared_error(test_Y, test_Y_pred)
     print "测试集RMSE:", np.sqrt(mean_squared_error(test_Y, test_Y_pred))
+    print "总耗时:", time() - t, "秒"
 
     print "\n**********测试NuSVR类**********"
-    # model = GridSearchCV(NuSVR(cache_size=1000), param_grid={"C": np.logspace(-3, 3, 7), "nu": np.linspace(0.1, 1, 10),
-    #                                                          "gamma": np.logspace(-3, 3, 7)}, cv=5)
-    # model.fit(train_X, train_Y.values.ravel())
-    # print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
+    t = time()
+    model = GridSearchCV(NuSVR(cache_size=1000), param_grid={"C": np.logspace(-3, 3, 7), "nu": np.linspace(0.1, 1, 10),
+                                                             "gamma": np.logspace(-3, 3, 7)}, cv=5)
+    model.fit(train_X, train_Y.values.ravel())
+    print("最好的参数是:%s, 此时的得分是:%0.2f" % (model.best_params_, model.best_score_))
 
     model = NuSVR(C=100.0, nu=0.3, gamma=0.1, cache_size=500)
     # 拟合训练集
@@ -160,3 +190,4 @@ if __name__ == "__main__":
     test_Y_pred = model.predict(test_X)
     print "测试集MSE:", mean_squared_error(test_Y, test_Y_pred)
     print "测试集RMSE:", np.sqrt(mean_squared_error(test_Y, test_Y_pred))
+    print "总耗时:", time() - t, "秒"
