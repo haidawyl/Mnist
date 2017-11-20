@@ -31,7 +31,7 @@ if __name__ == "__main__":
     num = 10000
     # 类别数量
     n_class = len(np.unique(train_Y))
-    for n in range(2, n_class - 1):
+    for n in range(1, n_class - 2):
         print "n = ", n
         # 使用LDA降维
         lda = LinearDiscriminantAnalysis(n_components=n)
